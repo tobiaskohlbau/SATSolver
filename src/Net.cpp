@@ -5,7 +5,8 @@ Net::Net()
 }
 
 Net::Net(int number, std::string name) :
-    m_number(number)
+    m_number(number),
+    m_name(name)
 {
         
 }
@@ -14,8 +15,7 @@ Net::~Net()
 {
 }
 
-
-int Net::number()
+int Net::number() const
 {
     return this->m_number; 
 }
@@ -25,7 +25,7 @@ void Net::setNumber(int number)
     this->m_number = number; 
 }
 
-std::string Net::name()
+std::string Net::name() const
 {
     return this->m_name; 
 }

@@ -3,26 +3,30 @@
 
 #include "Net.h"
 #include "Gate.h"
+#include "ConjunctiveNormalForm.h"
 
 #include <string>
 #include <vector>
-#include <map>
+#include <memory>
 
 class Netlist
 {
     public:
         Netlist();
+        explicit Netlist(std::string file);
         ~Netlist();
 
         void readFromFile(std::string file);
+        ConjunctiveNormalForm cnf();
+
     private:
-        std::vector<std::string> readIOFromLine(std::string line);
-        int m_numberOfNets;
+        void readIOFromStream(std::ifstream &fs, std::vector<std::string> *out);
+        void readNetsFromStream(std::ifstream &fs);
+        void readGatesFromStream(std::ifstream &fs);
+        unsigned int m_numberOfNets;
         std::vector<std::string> m_inputNames;
         std::vector<std::string> m_outputNames;
-       
-        std::map<int, Net> m_nets;
-
+        std::vector<std::shared_ptr<Net>> m_nets;
         std::vector<Gate> m_gates;
 };
 

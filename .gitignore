@@ -2,3 +2,5 @@ tags
 sat
 netlists/
 *.o
+documentation/
+*.vim

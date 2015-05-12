@@ -10,10 +10,10 @@ class Net
         Net(int number, std::string name = "undefined");
         ~Net();
 
-        int number();
+        int number() const;
         void setNumber(int number);
 
-        std::string name();
+        std::string name() const;
         void setName(std::string name);
     private:
         int m_number;

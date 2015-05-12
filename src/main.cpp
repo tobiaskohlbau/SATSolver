@@ -1,11 +1,20 @@
 #include "Clause.h"
 #include "Netlist.h"
 
-int main(int argc, char **arv)
+#include <iostream>
+
+int main(int argc, char **argv)
 {
-    Literal *tmpLiteral = new Literal(1, true, -1);
+    if (argc == 0)
+        return -1;
 
-    Netlist *netlist = new Netlist();
 
-    netlist->readFromFile("/home/tobias/edat/netlists/adder4.net");
+    std::vector<Netlist> netlists = {Netlist(argv[1])};
+
+    //netlists.push_back(Netlist("/home/tobias/edat/netlists/sample_1.net"));
+
+    for (Netlist netlist : netlists)
+    {
+        std::cout << netlist.cnf().string() << std::endl;
+    }
 }

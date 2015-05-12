@@ -1,4 +1,6 @@
 #include "Gate.h"
+#include "Literal.h"
+#include "ConjunctiveNormalForm.h"
 
 #include <iostream>
 
@@ -6,46 +8,163 @@ Gate::Gate()
 {
 }
 
-Gate::Gate(Type type, std::vector<Net> nets) :
-    m_type(type)
+Gate::Gate(Type type, std::vector<std::shared_ptr<Net>> nets) :
+    m_type(type),
+    m_nets(nets)
 {
-    switch (type)
-    {
-    case Type::UNKNOWN:
-        std::cout << "unknown";
-        break;
-    case Type::AND:
-        std::cout << "and";
-        break;
-    case Type::OR:
-        std::cout << "or";
-        break;
-    case Type::INV:
-        std::cout << "inv";
-        break;
-    case Type::XOR:
-        std::cout << "xor";
-        break;
-    case Type::ZERO:
-        std::cout << "zero";
-        break;
-    case Type::ONE:
-        std::cout << "one";
-        break;
-    }
 }
 
 Gate::~Gate()
 {
 }
 
+Gate::Type Gate::type() const
+{
+    return this->m_type;
+}
+
+std::string Gate::typeAsString()
+{
+    switch (this->m_type)
+    {
+    case Type::AND:
+        return "AND";
+    case Type::OR:
+        return "OR";
+    case Type::INV:
+        return "INV";
+    case Type::XOR:
+        return "XOR";
+    case Type::ZERO:
+        return "ZERO";
+    case Type::ONE:
+        return "ONE";
+    case Type::EQUAL:
+        return "EQUAL";
+    default:
+        return "UNKNOWN";
+    }
+}
 
 void Gate::setType(Type type)
 {
     this->m_type = type; 
 }
 
-void Gate::setIONets(std::vector<Net> nets)
+std::vector<std::shared_ptr<Net>> Gate::nets() const
 {
-    this->m_ioNets = nets; 
+    return this->m_nets;
+}
+
+void Gate::setNets(std::vector<std::shared_ptr<Net>> nets)
+{
+    this->m_nets = nets; 
+}
+
+ConjunctiveNormalForm Gate::characteristicFunction()
+{
+    ConjunctiveNormalForm cnf;
+    std::vector<Literal> literals;
+    switch (this->m_type)
+    {
+    case Type::AND:
+        literals.push_back({m_nets.at(0), true, 0});
+        literals.push_back({m_nets.at(1), true, 0}); 
+        literals.push_back({m_nets.at(2), false, 0});
+
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+         
+        literals.push_back({m_nets.at(0), false, 0}); 
+        literals.push_back({m_nets.at(2), true, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+
+        literals.push_back({m_nets.at(1), false, 0}); 
+        literals.push_back({m_nets.at(2), true, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
+    case Type::OR:
+        literals.push_back({m_nets.at(0), false, 0}); 
+        literals.push_back({m_nets.at(1), false, 0}); 
+        literals.push_back({m_nets.at(2), false, 0});
+
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+         
+        literals.push_back({m_nets.at(0), true, 0}); 
+        literals.push_back({m_nets.at(2), false, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+
+        literals.push_back({m_nets.at(1), true, 0}); 
+        literals.push_back({m_nets.at(2), false, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
+    case Type::INV:
+        literals.push_back({m_nets.at(0), false, 0}); 
+        literals.push_back({m_nets.at(1), false, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+
+        literals.push_back({m_nets.at(0), true, 0}); 
+        literals.push_back({m_nets.at(1), true, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
+    case Type::XOR:
+        literals.push_back({m_nets.at(0), false, 0}); 
+        literals.push_back({m_nets.at(1), false, 0}); 
+        literals.push_back({m_nets.at(2), true, 0});
+
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        
+        literals.push_back({m_nets.at(0), true, 0}); 
+        literals.push_back({m_nets.at(1), true, 0}); 
+        literals.push_back({m_nets.at(2), true, 0});
+
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+
+        literals.push_back({m_nets.at(0), true, 0}); 
+        literals.push_back({m_nets.at(1), false, 0}); 
+        literals.push_back({m_nets.at(2), false, 0});
+
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+
+        literals.push_back({m_nets.at(0), false, 0}); 
+        literals.push_back({m_nets.at(1), true, 0}); 
+        literals.push_back({m_nets.at(2), false, 0});
+
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
+    case Type::ZERO:
+    case Type::ONE:
+    case Type::EQUAL:
+        literals.push_back({m_nets.at(0), true, 0}); 
+        literals.push_back({m_nets.at(1), false, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+
+        literals.push_back({m_nets.at(0), false, 0}); 
+        literals.push_back({m_nets.at(1), true, 0});
+        
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
+    default:
+       return ConjunctiveNormalForm();
+    }
 }
