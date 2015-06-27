@@ -7,6 +7,7 @@ Literal::Literal()
 }
 
 Literal::Literal(const Literal &literal) :
+    m_removed(literal.removed()),
     m_net(literal.net()),
     m_inverted(literal.inverted()),
     m_value(literal.value())
@@ -14,6 +15,7 @@ Literal::Literal(const Literal &literal) :
 }
 
 Literal::Literal(std::shared_ptr<Net> net, bool inverted, int value) :
+    m_removed(false),
     m_net(net),
     m_inverted(inverted),
     m_value(value)
@@ -64,4 +66,14 @@ std::string Literal::string()
     out << "(" << this->m_value << ")";
 
     return out.str();
+}
+
+bool Literal::removed() const
+{
+    return m_removed;
+}
+
+void Literal::remove()
+{
+    this->m_removed = true;
 }

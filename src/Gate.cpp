@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#define INITIAL_VALUE -1
+
 Gate::Gate()
 {
 }
@@ -68,106 +70,106 @@ ConjunctiveNormalForm Gate::characteristicFunction()
     switch (this->m_type)
     {
     case Type::AND:
-        literals.push_back({m_nets.at(0), true, 0});
-        literals.push_back({m_nets.at(1), true, 0}); 
-        literals.push_back({m_nets.at(2), false, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE});
+        literals.push_back({m_nets.at(1), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), false, INITIAL_VALUE});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
          
-        literals.push_back({m_nets.at(0), false, 0}); 
-        literals.push_back({m_nets.at(2), true, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), true, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
 
-        literals.push_back({m_nets.at(1), false, 0}); 
-        literals.push_back({m_nets.at(2), true, 0});
+        literals.push_back({m_nets.at(1), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), true, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         return cnf;
     case Type::OR:
-        literals.push_back({m_nets.at(0), false, 0}); 
-        literals.push_back({m_nets.at(1), false, 0}); 
-        literals.push_back({m_nets.at(2), true, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), true, INITIAL_VALUE});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
          
-        literals.push_back({m_nets.at(0), true, 0}); 
-        literals.push_back({m_nets.at(2), false, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), false, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
 
-        literals.push_back({m_nets.at(1), true, 0}); 
-        literals.push_back({m_nets.at(2), false, 0});
+        literals.push_back({m_nets.at(1), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), false, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         return cnf;
     case Type::INV:
-        literals.push_back({m_nets.at(0), false, 0}); 
-        literals.push_back({m_nets.at(1), false, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), false, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
 
-        literals.push_back({m_nets.at(0), true, 0}); 
-        literals.push_back({m_nets.at(1), true, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), true, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         return cnf;
     case Type::XOR:
-        literals.push_back({m_nets.at(0), false, 0}); 
-        literals.push_back({m_nets.at(1), false, 0}); 
-        literals.push_back({m_nets.at(2), true, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), true, INITIAL_VALUE});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         
-        literals.push_back({m_nets.at(0), true, 0}); 
-        literals.push_back({m_nets.at(1), true, 0}); 
-        literals.push_back({m_nets.at(2), true, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), true, INITIAL_VALUE});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
 
-        literals.push_back({m_nets.at(0), true, 0}); 
-        literals.push_back({m_nets.at(1), false, 0}); 
-        literals.push_back({m_nets.at(2), false, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), false, INITIAL_VALUE});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
 
-        literals.push_back({m_nets.at(0), false, 0}); 
-        literals.push_back({m_nets.at(1), true, 0}); 
-        literals.push_back({m_nets.at(2), false, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(2), false, INITIAL_VALUE});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         return cnf;
     case Type::ZERO:
-        literals.push_back({m_nets.at(0), true, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE});
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         return cnf;
     case Type::ONE:
-        literals.push_back({m_nets.at(0), false, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE});
         cnf.addClausesFromLiterals(literals);
         literals.clear();
         return cnf;
     case Type::EQUAL:
-        literals.push_back({m_nets.at(0), true, 0}); 
-        literals.push_back({m_nets.at(1), false, 0});
+        literals.push_back({m_nets.at(0), true, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), false, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();
 
-        literals.push_back({m_nets.at(0), false, 0}); 
-        literals.push_back({m_nets.at(1), true, 0});
+        literals.push_back({m_nets.at(0), false, INITIAL_VALUE}); 
+        literals.push_back({m_nets.at(1), true, INITIAL_VALUE});
         
         cnf.addClausesFromLiterals(literals);
         literals.clear();

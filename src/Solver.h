@@ -11,10 +11,11 @@ public:
     ~Solver();
     void solve();
 private:
+    std::shared_ptr<ConjunctiveNormalForm> m_satifiable;
     Netlist m_netlist;
     Netlist miter(std::vector<Netlist> netlists);
-    void dp(std::shared_ptr<ConjunctiveNormalForm> cnf);
-    void unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf);
+    bool dp(std::shared_ptr<ConjunctiveNormalForm> cnf);
+    bool unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf);
 };
 
 #endif /* SOLVER_H_ */

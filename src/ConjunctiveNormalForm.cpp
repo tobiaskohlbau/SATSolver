@@ -7,6 +7,16 @@ ConjunctiveNormalForm::ConjunctiveNormalForm()
 {
 }
 
+ConjunctiveNormalForm::ConjunctiveNormalForm(const ConjunctiveNormalForm &cnf) 
+{
+    std::vector<std::shared_ptr<Clause>> clauses;
+    for (auto clause : cnf.clauses(true))
+    {
+        clauses.push_back(std::make_shared<Clause>(*clause));
+    }
+    m_clauses = clauses;
+}
+
 ConjunctiveNormalForm::ConjunctiveNormalForm(std::vector<std::shared_ptr<Clause>> clauses) :
     m_clauses(clauses)
 {
@@ -17,9 +27,22 @@ ConjunctiveNormalForm::~ConjunctiveNormalForm()
 }
 
 
-std::vector<std::shared_ptr<Clause>> ConjunctiveNormalForm::clauses()
+std::vector<std::shared_ptr<Clause>> ConjunctiveNormalForm::clauses(bool removed) const
 {
-    return this->m_clauses; 
+    if (removed)
+    {
+        return this->m_clauses; 
+    }
+    else
+    {
+        std::vector<std::shared_ptr<Clause>> clauses;
+        for (auto clause : m_clauses)
+        {
+            if (!clause->removed())
+                clauses.push_back(clause);
+        }
+        return clauses;
+    }
 }
 
 void ConjunctiveNormalForm::setClauses(std::vector<std::shared_ptr<Clause>> clauses)
@@ -27,17 +50,20 @@ void ConjunctiveNormalForm::setClauses(std::vector<std::shared_ptr<Clause>> clau
    this->m_clauses = clauses; 
 }
 
-std::string ConjunctiveNormalForm::string()
+std::string ConjunctiveNormalForm::string(bool removed)
 {
     std::stringstream out;
     unsigned int i = 0;
 
     for (auto clause : this->m_clauses)
     {
-        if (i > 0)
-            out << "&";
-        out << clause->string();
-        ++i;
+        if (!clause->removed() || removed)
+        {
+            if (i > 0)
+                out << "&";
+            out << clause->string(removed);
+            ++i;
+        }
     }
 
     return out.str();
@@ -65,11 +91,22 @@ void ConjunctiveNormalForm::addClausesFromCNF(ConjunctiveNormalForm cnf)
 
 bool ConjunctiveNormalForm::empty()
 {
-    return false;
+    int active = m_clauses.size();
+    for (auto clause : m_clauses)
+    {
+        if (clause->removed())
+            --active;
+    }
+    return active == 0;
 }
 
 bool ConjunctiveNormalForm::emptyClause()
 {
+    for (auto clause : m_clauses)
+    {
+        if (clause->literals().size() == 0)
+            return true;
+    }
     return false;
 }
 
@@ -82,6 +119,15 @@ void ConjunctiveNormalForm::setVariable(int number, int value)
             if (literal->net()->number() == number)
             {
                 literal->setValue(value);
+
+                if (literal->inverted() && value == 1)
+                    literal->remove();
+                else if (literal->inverted() && value == 0)
+                    clause->remove();
+                else if (value == 1)
+                    clause->remove();
+                else if (value == 0)
+                    literal->remove();
             }
         }
     }
@@ -89,5 +135,17 @@ void ConjunctiveNormalForm::setVariable(int number, int value)
 
 int ConjunctiveNormalForm::getRightMost()
 {
-    return m_clauses.back()->literals().back()->net()->number();
+    std::vector<std::shared_ptr<Clause>> clauses;
+    for (auto clause : m_clauses)
+    {
+        if (!clause->removed())
+            clauses.push_back(clause);
+    }
+    std::vector<std::shared_ptr<Literal>> literals = clauses.back()->literals();
+    for (auto it = literals.rbegin(); it != literals.rend(); ++it)
+    {
+        if ((*it)->value() == -1)
+            return (*it)->net()->number();
+    }
+    return 0;
 }

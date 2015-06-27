@@ -1,6 +1,6 @@
 CC = g++
 DOC = doxygen
-CC_FLAGS = -Wall -std=c++11 -O3
+CC_FLAGS = -Wall -std=c++11 -O0 -g
 PROJECT = sat
 
 SOURCES = src/main.cpp src/Literal.cpp src/Clause.cpp src/ConjunctiveNormalForm.cpp src/Netlist.cpp src/Net.cpp \

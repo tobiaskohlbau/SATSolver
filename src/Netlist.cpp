@@ -55,24 +55,24 @@ void Netlist::readFromFile(std::string fileName)
 
     fileStream.close();
 
-    //// debug output
-    //std::cout << this->m_numberOfNets << std::endl;
-    //for (std::string input : m_inputNames)
-    //{
-    //    std::cout << "input: " << input << std::endl;
-    //}
-    //for (std::string output : m_outputNames)
-    //{
-    //    std::cout << "output: " << output << std::endl;
-    //}
-    //for (std::shared_ptr<Net> net : m_nets)
-    //{
-    //    std::cout << "name: " << net->name() << " number: " << net->number() << std::endl;
-    //}
-    //for (auto gate : m_gates)
-    //{
-    //    std::cout << "type: " << gate->typeAsString() << std::endl;
-    //}
+    // debug output
+    std::cout << this->m_numberOfNets << std::endl;
+    for (std::string input : m_inputNames)
+    {
+        std::cout << "input: " << input << std::endl;
+    }
+    for (std::string output : m_outputNames)
+    {
+        std::cout << "output: " << output << std::endl;
+    }
+    for (std::shared_ptr<Net> net : m_nets)
+    {
+        std::cout << "name: " << net->name() << " number: " << net->number() << std::endl;
+    }
+    for (auto gate : m_gates)
+    {
+        std::cout << "type: " << gate->typeAsString() << std::endl;
+    }
 }
 
 void Netlist::readIOFromStream(std::ifstream &fs, std::set<std::string> *out)
@@ -102,7 +102,7 @@ void Netlist::readNetsFromStream(std::ifstream &fs)
     
     while(std::getline(fs, line))
     {
-        if (line.length() == 0)
+        if (line.length() <= 1)
             break;
         ls << line;
         ls >> number;

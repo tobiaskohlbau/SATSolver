@@ -23,7 +23,10 @@ class Literal
         void setValue(int value);
 
         std::string string();
+        bool removed() const;
+        void remove();
     private:
+        bool m_removed;
         std::shared_ptr<Net> m_net;
         bool m_inverted;
         int m_value;

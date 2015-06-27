@@ -15,8 +15,17 @@ Solver::~Solver()
 void Solver::solve()
 {
     std::shared_ptr<ConjunctiveNormalForm> cnf = m_netlist.cnf();
-    cnf->setVariable(12, 1);
-    std::cout << cnf->string() << std::endl;
+    if (dp(cnf))
+        std::cout << "UNEQUAL";
+    else
+        std::cout << "EQUAL";
+
+    //std::cout << m_satifiable->string(true) << std::endl;
+
+    //std::shared_ptr<ConjunctiveNormalForm> cnf1 = std::make_shared<ConjunctiveNormalForm>(*cnf);
+    //cnf1->setVariable(11, 55);
+    //std::cout << cnf->string() << std::endl;
+    //std::cout << cnf1->string() << std::endl;
 }
 
 Netlist Solver::miter(std::vector<Netlist> netlists)
@@ -78,20 +87,16 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
     }
 
     // process internal nets
-    for (auto net : netlists.at(0).internalNets())
+    numberOffset = 0;
+    for (auto netlist : netlists)
     {
-        combinedInternals.push_back(net);
-        numberOffset = 0;
-        for (unsigned int i = 1; i < netlists.size(); i++)
+        for (auto net : netlist.internalNets())
         {
-            numberOffset += netlists.at(i-1).numberOfNets();
-            for (auto n : netlists.at(i).internalNets())
-            {
-                std::shared_ptr<Net> modifiedNet = std::make_shared<Net>(*n);
-                modifiedNet->setNumber(modifiedNet->number() + numberOffset);
-                combinedInternals.push_back(modifiedNet);
-            }
+            std::shared_ptr<Net> modifiedNet = std::make_shared<Net>(*net);
+            modifiedNet->setNumber(modifiedNet->number() + numberOffset);
+            combinedInternals.push_back(modifiedNet);
         }
+        numberOffset += netlist.numberOfNets();
     }
 
     for (auto input : combinedInputs)
@@ -116,6 +121,11 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
                 return n1->number() < n2->number();
             });
 
+    for (auto  net : nets)
+    {
+        std::cout << net->number() << std::endl;
+    }
+
     // process gates
     std::shared_ptr<Gate> gate;
     std::vector<std::shared_ptr<Net>> tmpNets;
@@ -125,6 +135,7 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
         for (auto g : netlist.gates())
         {
             gate = std::make_shared<Gate>(*g);
+            std::cout << gate->typeAsString();
             for (auto net : g->nets())
             {
                 tmpNets.push_back(nets.at(net->number() - 1 + numberOffset));
@@ -173,34 +184,88 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
     return Netlist(numberOffset, inputNames, outputNames, nets, gates);
 }
 
-void Solver::dp(std::shared_ptr<ConjunctiveNormalForm> cnf)
+bool Solver::dp(std::shared_ptr<ConjunctiveNormalForm> cnf)
 {
+    bool propagate = false;
+    while (propagate)
+    {
+        propagate = unitClause(cnf);
+        std::cout << "unit propagate done" << std::endl;
+        std::cout << cnf->string() << std::endl;
+        std::cout << "-------------------" << std::endl;
+    }
+
     if (cnf->empty())
     {
-        // terminate
+        std::cout << "empty cnf" << std::endl;
+        m_satifiable = cnf;
+        return true;
     }
     else if (cnf->emptyClause())
     {
-        // no possible solution
+        std::cout << "empty clause" << std::endl;
+        std::cout << cnf->string(true) << std::endl;
+        return false;
     }
     else
     {
         // backtracking
-        cnf->setVariable(cnf->getRightMost(), 0);
-        dp(cnf);
+        std::shared_ptr<ConjunctiveNormalForm> cnf0 = std::make_shared<ConjunctiveNormalForm>(*cnf);
+        int rightMost = cnf0->getRightMost();
+        cnf0->setVariable(rightMost, 0);
 
-        cnf->setVariable(12, 1);
-        dp(cnf);
+        std::cout << "set " << rightMost << "to 0" << std::endl;
+        std::cout << cnf0->string() << std::endl;
+        std::cout << "-------------------" << std::endl;
+
+
+        std::shared_ptr<ConjunctiveNormalForm> cnf1 = std::make_shared<ConjunctiveNormalForm>(*cnf);
+        rightMost = cnf1->getRightMost();
+        cnf1->setVariable(rightMost, 1);
+
+        std::cout << "set " << rightMost << "to 1" << std::endl;
+        std::cout << cnf0->string() << std::endl;
+        std::cout << "-------------------" << std::endl;
+
+        return dp(cnf0) || dp(cnf1);
     }
 }
 
-void Solver::unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf)
+bool Solver::unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf)
 {
+    bool changed = false;
+    std::vector<int> literals;
+    bool inverted = false;
     for (auto clause : cnf->clauses())
     {
         if (clause->literals().size() == 1)
         {
-            std::cout << clause->string();
+            literals.push_back(clause->literals().at(0)->net()->number());
+            inverted = clause->literals().at(0)->inverted();
+            changed = true;
         }
     }
+
+    for (auto literal : literals)
+    {
+        for (auto clause : cnf->clauses())
+        {
+            for (auto lit : clause->literals())
+            {
+                if (lit->net()->number() == literal)
+                {
+                    if (lit->inverted())
+                        lit->remove();
+                    else
+                        clause->remove();
+
+                    if (inverted)
+                        lit->setValue(0);
+                    else
+                        lit->setValue(1);
+                }
+            }
+        }
+    }
+    return changed;
 }

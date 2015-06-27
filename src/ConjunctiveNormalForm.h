@@ -11,17 +11,18 @@ class ConjunctiveNormalForm
 {
     public:
         ConjunctiveNormalForm();
+        ConjunctiveNormalForm(const ConjunctiveNormalForm &cnf);
         ConjunctiveNormalForm(std::vector<std::shared_ptr<Clause>> clauses);
         ~ConjunctiveNormalForm();
 
-        std::vector<std::shared_ptr<Clause>> clauses();
+        std::vector<std::shared_ptr<Clause>> clauses(bool removed = false) const;
         void setClauses(std::vector<std::shared_ptr<Clause>> clauses);
 
         void addClause(Clause clause);
         void addClausesFromLiterals(std::vector<Literal> literals);
         void addClausesFromCNF(ConjunctiveNormalForm cnf);
 
-        std::string string();
+        std::string string(bool removed = false);
 
         bool empty();
         bool emptyClause();
