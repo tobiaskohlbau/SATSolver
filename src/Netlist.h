@@ -20,7 +20,7 @@ class Netlist
         ~Netlist();
 
         void readFromFile(std::string file);
-        ConjunctiveNormalForm cnf();
+        std::shared_ptr<ConjunctiveNormalForm> cnf();
 
         unsigned int numberOfNets();
 

@@ -5,14 +5,21 @@
 
 Solver::Solver(std::vector<Netlist> netlists)
 {
-    Netlist netlist = this->merge(netlists);
+    m_netlist = this->miter(netlists);
 }
 
 Solver::~Solver()
 {
 }
 
-Netlist Solver::merge(std::vector<Netlist> netlists)
+void Solver::solve()
+{
+    std::shared_ptr<ConjunctiveNormalForm> cnf = m_netlist.cnf();
+    cnf->setVariable(12, 1);
+    std::cout << cnf->string() << std::endl;
+}
+
+Netlist Solver::miter(std::vector<Netlist> netlists)
 {
     unsigned int numberOffset = 0;
     std::set<std::string> inputNames;
@@ -166,3 +173,34 @@ Netlist Solver::merge(std::vector<Netlist> netlists)
     return Netlist(numberOffset, inputNames, outputNames, nets, gates);
 }
 
+void Solver::dp(std::shared_ptr<ConjunctiveNormalForm> cnf)
+{
+    if (cnf->empty())
+    {
+        // terminate
+    }
+    else if (cnf->emptyClause())
+    {
+        // no possible solution
+    }
+    else
+    {
+        // backtracking
+        cnf->setVariable(cnf->getRightMost(), 0);
+        dp(cnf);
+
+        cnf->setVariable(12, 1);
+        dp(cnf);
+    }
+}
+
+void Solver::unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf)
+{
+    for (auto clause : cnf->clauses())
+    {
+        if (clause->literals().size() == 1)
+        {
+            std::cout << clause->string();
+        }
+    }
+}

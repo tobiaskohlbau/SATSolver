@@ -9,8 +9,12 @@ class Solver
 public:
     Solver(std::vector<Netlist> netlists);
     ~Solver();
+    void solve();
 private:
-    Netlist merge(std::vector<Netlist> netlists);
+    Netlist m_netlist;
+    Netlist miter(std::vector<Netlist> netlists);
+    void dp(std::shared_ptr<ConjunctiveNormalForm> cnf);
+    void unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf);
 };
 
 #endif /* SOLVER_H_ */

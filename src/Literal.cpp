@@ -6,19 +6,26 @@ Literal::Literal()
 {
 }
 
+Literal::Literal(const Literal &literal) :
+    m_net(literal.net()),
+    m_inverted(literal.inverted()),
+    m_value(literal.value())
+{
+}
+
 Literal::Literal(std::shared_ptr<Net> net, bool inverted, int value) :
     m_net(net),
     m_inverted(inverted),
     m_value(value)
 {
-};
+}
 
 Literal::~Literal()
 {
 }
 
 
-std::shared_ptr<Net> Literal::net()
+std::shared_ptr<Net> Literal::net() const
 {
     return this->m_net;
 }
@@ -28,7 +35,7 @@ void Literal::setNet(std::shared_ptr<Net> net)
     this->m_net= net;
 }
 
-bool Literal::inverted()
+bool Literal::inverted() const
 {
     return this->m_inverted;
 }
@@ -38,7 +45,7 @@ void Literal::setInverted(bool inverted)
     this->m_inverted = inverted;
 }
 
-int Literal::value()
+int Literal::value() const
 {
     return m_value;
 }

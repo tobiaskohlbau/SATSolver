@@ -17,4 +17,6 @@ int main(int argc, char **argv)
     //netlists.push_back(Netlist("/home/tobias/edat/netlists/sample_2.net"));
 
     std::shared_ptr<Solver> solver = std::make_shared<Solver>(netlists);
+
+    solver->solve();
 }

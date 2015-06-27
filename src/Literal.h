@@ -9,16 +9,17 @@ class Literal
 {
     public:
         Literal();
+        Literal(const Literal &literal);
         Literal(std::shared_ptr<Net> net, bool inverted, int value);
         ~Literal();
 
-        std::shared_ptr<Net> net();
+        std::shared_ptr<Net> net() const;
         void setNet(std::shared_ptr<Net> net);
 
-        bool inverted();
+        bool inverted() const;
         void setInverted(bool inverted);
 
-        int value();
+        int value() const;
         void setValue(int value);
 
         std::string string();

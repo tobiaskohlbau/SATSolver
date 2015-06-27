@@ -163,12 +163,12 @@ void Netlist::readGatesFromStream(std::ifstream &fs)
     }
 }
 
-ConjunctiveNormalForm Netlist::cnf()
+std::shared_ptr<ConjunctiveNormalForm> Netlist::cnf()
 {
-    ConjunctiveNormalForm cnf;
+    std::shared_ptr<ConjunctiveNormalForm> cnf = std::make_shared<ConjunctiveNormalForm>();
     for (auto gate : m_gates)
     {
-        cnf.addClausesFromCNF(gate->characteristicFunction());
+        cnf->addClausesFromCNF(gate->characteristicFunction());
     }
     return cnf;
 }

@@ -9,15 +9,16 @@ class Clause
 {
     public:
         Clause();
-        Clause(std::vector<Literal> literals);
+        Clause(const Clause &clause);
+        Clause(std::vector<std::shared_ptr<Literal>> literals);
         ~Clause();
 
-        std::vector<Literal> literals();
-        void setLiterals(std::vector<Literal> literals);
+        std::vector<std::shared_ptr<Literal>> literals() const;
+        void setLiterals(std::vector<std::shared_ptr<Literal>> literals);
 
         std::string string();
     private:
-        std::vector<Literal> m_literals;
+        std::vector<std::shared_ptr<Literal>> m_literals;
 };
 
 #endif /* CLAUSE_H_ */

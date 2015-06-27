@@ -6,8 +6,13 @@ Clause::Clause()
 {
 }
 
-Clause::Clause(std::vector<Literal> literals) :
+Clause::Clause(std::vector<std::shared_ptr<Literal>> literals) :
     m_literals(literals)
+{
+}
+
+Clause::Clause(const Clause &clause) :
+    m_literals(clause.literals())
 {
 }
 
@@ -15,12 +20,12 @@ Clause::~Clause()
 {
 }
 
-std::vector<Literal> Clause::literals()
+std::vector<std::shared_ptr<Literal>> Clause::literals() const
 {
     return this->m_literals; 
 }
 
-void Clause::setLiterals(std::vector<Literal> literals)
+void Clause::setLiterals(std::vector<std::shared_ptr<Literal>> literals)
 {
     this->m_literals = literals; 
 }
@@ -31,11 +36,11 @@ std::string Clause::string()
     unsigned int i = 0;
 
     out << "(";
-    for (Literal literal : m_literals)
+    for (auto literal : m_literals)
     {
         if ( i > 0)
             out << "|";
-        out << literal.string();
+        out << literal->string();
         ++i;
     }
     out << ")";
