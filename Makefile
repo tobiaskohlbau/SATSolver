@@ -4,7 +4,7 @@ CC_FLAGS = -Wall -std=c++11 -O3
 PROJECT = sat
 
 SOURCES = src/main.cpp src/Literal.cpp src/Clause.cpp src/ConjunctiveNormalForm.cpp src/Netlist.cpp src/Net.cpp \
-src/Gate.cpp
+src/Gate.cpp src/Solver.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 
 

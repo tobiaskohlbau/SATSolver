@@ -90,7 +90,7 @@ ConjunctiveNormalForm Gate::characteristicFunction()
     case Type::OR:
         literals.push_back({m_nets.at(0), false, 0}); 
         literals.push_back({m_nets.at(1), false, 0}); 
-        literals.push_back({m_nets.at(2), false, 0});
+        literals.push_back({m_nets.at(2), true, 0});
 
         cnf.addClausesFromLiterals(literals);
         literals.clear();
@@ -150,7 +150,15 @@ ConjunctiveNormalForm Gate::characteristicFunction()
         literals.clear();
         return cnf;
     case Type::ZERO:
+        literals.push_back({m_nets.at(0), true, 0});
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
     case Type::ONE:
+        literals.push_back({m_nets.at(0), false, 0});
+        cnf.addClausesFromLiterals(literals);
+        literals.clear();
+        return cnf;
     case Type::EQUAL:
         literals.push_back({m_nets.at(0), true, 0}); 
         literals.push_back({m_nets.at(1), false, 0});

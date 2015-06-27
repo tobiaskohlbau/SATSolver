@@ -14,6 +14,16 @@ Netlist::Netlist(std::string file)
     this->readFromFile(file);
 }
 
+Netlist::Netlist(unsigned int numberOfNets, std::set<std::string> inputNames, std::set<std::string> outputNames,
+    std::vector<std::shared_ptr<Net>> nets, std::vector<std::shared_ptr<Gate>> gates) :
+    m_numberOfNets(numberOfNets),
+    m_inputNames(inputNames),
+    m_outputNames(outputNames),
+    m_nets(nets),
+    m_gates(gates)
+{
+}
+
 Netlist::~Netlist()
 {
 }
@@ -59,13 +69,13 @@ void Netlist::readFromFile(std::string fileName)
     //{
     //    std::cout << "name: " << net->name() << " number: " << net->number() << std::endl;
     //}
-    //for (Gate gate : m_gates)
+    //for (auto gate : m_gates)
     //{
-    //    std::cout << "type: " << gate.typeAsString() << std::endl;
+    //    std::cout << "type: " << gate->typeAsString() << std::endl;
     //}
 }
 
-void Netlist::readIOFromStream(std::ifstream &fs, std::vector<std::string> *out)
+void Netlist::readIOFromStream(std::ifstream &fs, std::set<std::string> *out)
 {
     std::string line;
     std::string name;
@@ -74,7 +84,7 @@ void Netlist::readIOFromStream(std::ifstream &fs, std::vector<std::string> *out)
 
     lineStream << line;
     while (lineStream >> name)
-        out->push_back(name);
+        out->insert(name);
 }
 
 void Netlist::readNetsFromStream(std::ifstream &fs)
@@ -83,38 +93,29 @@ void Netlist::readNetsFromStream(std::ifstream &fs)
     std::stringstream ls;
     std::string name;
     unsigned int number;
-    bool read = true;
     
+    m_nets.reserve(m_numberOfNets);
     for (unsigned int i = 1; i <= m_numberOfNets; ++i)
     {
-        if (read)
-        {
-            std::getline(fs, line);
-            ls << line;
-            ls >> number;
-            ls >> name;
-            read = false;
-        }
-        if (!read && number == i)
-        {
-            m_nets.push_back(std::make_shared<Net>(number, name));
-            ls.clear();
-            name.clear();
-            number = 0;
-            if (line.length() == 0)
-                read = false; 
-            else
-                read = true;
-            continue;
-        }
         m_nets.push_back(std::make_shared<Net>(i));
+    }
+    
+    while(std::getline(fs, line))
+    {
+        if (line.length() == 0)
+            break;
+        ls << line;
+        ls >> number;
+        ls >> name;
+        m_nets.at(number - 1)->setName(name);
+        ls.clear();
     }
 }
 
 void Netlist::readGatesFromStream(std::ifstream &fs)
 {
     // read gates
-    Gate gate;
+    std::shared_ptr<Gate> gate;
     std::vector<std::shared_ptr<Net>> ioNets;
     std::stringstream ls;
     std::string name;
@@ -122,24 +123,26 @@ void Netlist::readGatesFromStream(std::ifstream &fs)
     int number;
     while (std::getline(fs, line))
     {
+        gate = std::make_shared<Gate>();
         ls.clear();
         ls << line;
         ls >> name;
 
         if (name == "and")
-            gate.setType(Gate::Type::AND);
+            gate->setType(Gate::Type::AND);
         else if (name == "or")
-            gate.setType(Gate::Type::OR);
+            gate->setType(Gate::Type::OR);
         else if (name == "inv")
-            gate.setType(Gate::Type::INV);
+            gate->setType(Gate::Type::INV);
         else if (name == "xor")
-            gate.setType(Gate::Type::XOR);
+            gate->setType(Gate::Type::XOR);
         else if (name == "zero")
-            gate.setType(Gate::Type::ZERO);
+            gate->setType(Gate::Type::ZERO);
         else if (name == "one")
-            gate.setType(Gate::Type::ONE);
+            gate->setType(Gate::Type::ONE);
         else
-            gate.setType(Gate::Type::UNKNOWN);
+            gate->setType(Gate::Type::UNKNOWN);
+
 
         while (ls >> number)
         {
@@ -153,7 +156,7 @@ void Netlist::readGatesFromStream(std::ifstream &fs)
             }
         }
 
-        gate.setNets(ioNets);
+        gate->setNets(ioNets);
         ioNets.clear();
 
         this->m_gates.push_back(gate);
@@ -163,9 +166,79 @@ void Netlist::readGatesFromStream(std::ifstream &fs)
 ConjunctiveNormalForm Netlist::cnf()
 {
     ConjunctiveNormalForm cnf;
-    for (Gate gate : m_gates)
+    for (auto gate : m_gates)
     {
-        cnf.addClausesFromCNF(gate.characteristicFunction());
+        cnf.addClausesFromCNF(gate->characteristicFunction());
     }
     return cnf;
+}
+
+unsigned int Netlist::numberOfNets()
+{
+    return m_numberOfNets;
+}
+
+std::set<std::string> Netlist::names()
+{
+    std::set<std::string> names;
+    std::set_union(m_inputNames.begin(), m_inputNames.end(),
+            m_outputNames.begin(), m_outputNames.end(),
+            std::inserter(names, names.end()));
+    return names;
+}
+
+std::set<std::string> Netlist::inputNames()
+{
+    return m_inputNames;
+}
+
+std::set<std::string> Netlist::outputNames()
+{
+    return m_outputNames;
+}
+
+std::vector<std::shared_ptr<Net>> Netlist::nets()
+{
+    return m_nets;
+}
+
+std::vector<std::shared_ptr<Net>> Netlist::inputNets()
+{
+    std::vector<std::shared_ptr<Net>> inputs;
+
+    for (auto net : m_nets)
+    {
+        if (m_inputNames.find(net->name()) != m_inputNames.end())
+            inputs.push_back(net);
+    }
+    return inputs;
+}
+
+std::vector<std::shared_ptr<Net>> Netlist::outputNets()
+{
+    std::vector<std::shared_ptr<Net>> outputs;
+
+    for (auto net : m_nets)
+    {
+        if (m_outputNames.find(net->name()) != m_outputNames.end())
+            outputs.push_back(net);
+    }
+    return outputs;
+}
+
+std::vector<std::shared_ptr<Net>> Netlist::internalNets()
+{
+    std::vector<std::shared_ptr<Net>> internals;
+
+    for (auto net : m_nets)
+    {
+        if (net->name() == "undefined")
+            internals.push_back(net);
+    }
+    return internals;
+}
+
+std::vector<std::shared_ptr<Gate>> Netlist::gates()
+{
+    return m_gates;
 }
