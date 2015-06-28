@@ -1,25 +1,29 @@
 #include "Clause.h"
 
 #include <sstream>
+#include <algorithm>
+
+#include <iostream>
 
 Clause::Clause()
 {
 }
 
-Clause::Clause(const Clause &clause) :
-    m_removed(clause.removed())
+Clause::Clause(const Clause &clause)
 {
-    std::vector<std::shared_ptr<Literal>> literals;
+    for (auto literal : clause.literals())
+    {
+        m_literals.push_back(std::make_shared<Literal>(*literal));
+    }
+
     for (auto literal : clause.literals(true))
     {
-        literals.push_back(std::make_shared<Literal>(*literal));
+        m_removedLiterals.push_back(std::make_shared<Literal>(*literal));
     }
-    m_literals = literals;
 }
 
 Clause::Clause(std::vector<std::shared_ptr<Literal>> literals) :
-    m_literals(literals),
-    m_removed(false)
+    m_literals(literals)
 {
 }
 
@@ -30,19 +34,13 @@ Clause::~Clause()
 
 std::vector<std::shared_ptr<Literal>> Clause::literals(bool removed) const
 {
-    if (removed)
+    if (!removed)
     {
         return this->m_literals; 
     }
     else
     {
-        std::vector<std::shared_ptr<Literal>> literals;
-        for (auto literal : m_literals)
-        {
-            if (!literal->removed())
-                literals.push_back(literal);
-        }
-        return literals;
+        return this->m_removedLiterals;
     }
         
 }
@@ -58,27 +56,26 @@ std::string Clause::string(bool removed)
     unsigned int i = 0;
 
     out << "(";
-    for (auto literal : m_literals)
+    for (auto literal : this->literals(removed))
     {
-        if (!literal->removed() || removed)
-        {
-            if ( i > 0)
-                out << "|";
-            out << literal->string();
-            ++i;
-        }
+        if ( i > 0)
+            out << "|";
+        out << literal->string();
+        ++i;
     }
     out << ")";
 
     return out.str();
 }
 
-bool Clause::removed() const
+void Clause::remove(Literal *literal)
 {
-    return m_removed;
-}
-
-void Clause::remove()
-{
-    this->m_removed = true;
+    auto it = std::find_if(m_literals.begin(), m_literals.end(), [literal](std::shared_ptr<Literal> const &p) {
+        return p.get() == literal;
+    });
+    if (it != m_literals.end())
+    {
+        m_removedLiterals.push_back(*it);
+        m_literals.erase(it);
+    }
 }

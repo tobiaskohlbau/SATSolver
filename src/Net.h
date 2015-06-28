@@ -7,11 +7,11 @@ class Net
 {
     public:
         Net();
-        Net(int number, std::string name = "undefined");
+        Net(unsigned int number, std::string name = "undefined");
         ~Net();
 
-        int number() const;
-        void setNumber(int number);
+        unsigned int number() const;
+        void setNumber(unsigned int number);
 
         std::string name() const;
         void setName(std::string name);

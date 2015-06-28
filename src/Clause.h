@@ -17,11 +17,10 @@ class Clause
         void setLiterals(std::vector<std::shared_ptr<Literal>> literals);
 
         std::string string(bool removed = false);
-        bool removed() const;
-        void remove();
+        void remove(Literal *literal);
     private:
         std::vector<std::shared_ptr<Literal>> m_literals;
-        bool m_removed;
+        std::vector<std::shared_ptr<Literal>> m_removedLiterals;
 };
 
 #endif /* CLAUSE_H_ */

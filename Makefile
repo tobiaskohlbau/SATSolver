@@ -1,6 +1,7 @@
 CC = g++
 DOC = doxygen
-CC_FLAGS = -Wall -std=c++11 -O0 -g
+LD_FLAGS = -lpthread
+CC_FLAGS = -Wall -std=c++11 -O3 -g
 PROJECT = sat
 
 SOURCES = src/main.cpp src/Literal.cpp src/Clause.cpp src/ConjunctiveNormalForm.cpp src/Netlist.cpp src/Net.cpp \
@@ -9,11 +10,10 @@ OBJECTS = $(SOURCES:.cpp=.o)
 
 
 compile: $(OBJECTS)
-	$(CC) $(OBJECTS) -o sat
+	$(CC) $(LD_FLAGS) $(OBJECTS) -o sat
 
 run: compile
 	./$(PROJECT)
-
 
 %.o: %.cpp
 	$(CC) -c $(CC_FLAGS) -o $@ $<

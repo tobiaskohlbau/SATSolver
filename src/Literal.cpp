@@ -7,16 +7,14 @@ Literal::Literal()
 }
 
 Literal::Literal(const Literal &literal) :
-    m_removed(literal.removed()),
-    m_net(literal.net()),
+    m_netNumber(literal.netNumber()),
     m_inverted(literal.inverted()),
     m_value(literal.value())
 {
 }
 
-Literal::Literal(std::shared_ptr<Net> net, bool inverted, int value) :
-    m_removed(false),
-    m_net(net),
+Literal::Literal(unsigned int netNumber, bool inverted, int value) :
+    m_netNumber(netNumber),
     m_inverted(inverted),
     m_value(value)
 {
@@ -27,14 +25,14 @@ Literal::~Literal()
 }
 
 
-std::shared_ptr<Net> Literal::net() const
+unsigned int Literal::netNumber() const
 {
-    return this->m_net;
+    return this->m_netNumber;
 }
 
-void Literal::setNet(std::shared_ptr<Net> net)
+void Literal::setNetNumber(unsigned int netNumber)
 {
-    this->m_net= net;
+    this->m_netNumber= netNumber;
 }
 
 bool Literal::inverted() const
@@ -62,18 +60,8 @@ std::string Literal::string()
     std::stringstream out;
     if (this->m_inverted)
         out << "!";
-    out << this->m_net->number();
+    out << this->m_netNumber;
     out << "(" << this->m_value << ")";
 
     return out.str();
-}
-
-bool Literal::removed() const
-{
-    return m_removed;
-}
-
-void Literal::remove()
-{
-    this->m_removed = true;
 }

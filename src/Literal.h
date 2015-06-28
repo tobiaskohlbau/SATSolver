@@ -10,11 +10,11 @@ class Literal
     public:
         Literal();
         Literal(const Literal &literal);
-        Literal(std::shared_ptr<Net> net, bool inverted, int value);
+        Literal(unsigned int netNumber, bool inverted, int value);
         ~Literal();
 
-        std::shared_ptr<Net> net() const;
-        void setNet(std::shared_ptr<Net> net);
+        unsigned int netNumber() const;
+        void setNetNumber(unsigned int netNumber);
 
         bool inverted() const;
         void setInverted(bool inverted);
@@ -23,11 +23,8 @@ class Literal
         void setValue(int value);
 
         std::string string();
-        bool removed() const;
-        void remove();
     private:
-        bool m_removed;
-        std::shared_ptr<Net> m_net;
+        unsigned int m_netNumber;
         bool m_inverted;
         int m_value;
 };

@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <algorithm>
+#include <thread>
+#include <future>
 
 Solver::Solver(std::vector<Netlist> netlists)
 {
@@ -16,16 +18,25 @@ void Solver::solve()
 {
     std::shared_ptr<ConjunctiveNormalForm> cnf = m_netlist.cnf();
     if (dp(cnf))
-        std::cout << "UNEQUAL";
+        std::cout << "UNEQUAL" << std::endl;
     else
-        std::cout << "EQUAL";
-
-    //std::cout << m_satifiable->string(true) << std::endl;
+        std::cout << "EQUAL" << std::endl;
 
     //std::shared_ptr<ConjunctiveNormalForm> cnf1 = std::make_shared<ConjunctiveNormalForm>(*cnf);
-    //cnf1->setVariable(11, 55);
+    //cnf1->setVariable(11, 0);
+    ////for (int i = 1; i <= 12; i++)
+    ////    cnf1->removeLiteralsByNumber(i);
+    //for (auto clause : cnf1->clauses())
+    //{
+    //    for (auto literal : clause->literals())
+    //    {
+    //        std::cout << literal->netNumber() << std::endl;
+    //    }
+    //}
     //std::cout << cnf->string() << std::endl;
     //std::cout << cnf1->string() << std::endl;
+    //std::cout << cnf1->empty() << std::endl;
+    //std::cout << cnf1->emptyClause() << std::endl;
 }
 
 Netlist Solver::miter(std::vector<Netlist> netlists)
@@ -121,11 +132,6 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
                 return n1->number() < n2->number();
             });
 
-    for (auto  net : nets)
-    {
-        std::cout << net->number() << std::endl;
-    }
-
     // process gates
     std::shared_ptr<Gate> gate;
     std::vector<std::shared_ptr<Net>> tmpNets;
@@ -135,7 +141,6 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
         for (auto g : netlist.gates())
         {
             gate = std::make_shared<Gate>(*g);
-            std::cout << gate->typeAsString();
             for (auto net : g->nets())
             {
                 tmpNets.push_back(nets.at(net->number() - 1 + numberOffset));
@@ -186,25 +191,18 @@ Netlist Solver::miter(std::vector<Netlist> netlists)
 
 bool Solver::dp(std::shared_ptr<ConjunctiveNormalForm> cnf)
 {
-    bool propagate = false;
+    bool propagate = true;
     while (propagate)
     {
-        propagate = unitClause(cnf);
-        std::cout << "unit propagate done" << std::endl;
-        std::cout << cnf->string() << std::endl;
-        std::cout << "-------------------" << std::endl;
+        propagate = pureLiteral(cnf) || unitClause(cnf);
     }
 
     if (cnf->empty())
     {
-        std::cout << "empty cnf" << std::endl;
-        m_satifiable = cnf;
         return true;
     }
     else if (cnf->emptyClause())
     {
-        std::cout << "empty clause" << std::endl;
-        std::cout << cnf->string(true) << std::endl;
         return false;
     }
     else
@@ -214,58 +212,63 @@ bool Solver::dp(std::shared_ptr<ConjunctiveNormalForm> cnf)
         int rightMost = cnf0->getRightMost();
         cnf0->setVariable(rightMost, 0);
 
-        std::cout << "set " << rightMost << "to 0" << std::endl;
-        std::cout << cnf0->string() << std::endl;
-        std::cout << "-------------------" << std::endl;
-
-
         std::shared_ptr<ConjunctiveNormalForm> cnf1 = std::make_shared<ConjunctiveNormalForm>(*cnf);
         rightMost = cnf1->getRightMost();
         cnf1->setVariable(rightMost, 1);
 
-        std::cout << "set " << rightMost << "to 1" << std::endl;
-        std::cout << cnf0->string() << std::endl;
-        std::cout << "-------------------" << std::endl;
+        auto handle1 = std::async(std::launch::async, &Solver::dp, this, cnf1);
 
-        return dp(cnf0) || dp(cnf1);
+        bool out = dp(cnf0);
+        return out || handle1.get();
     }
+}
+
+bool Solver::pureLiteral(std::shared_ptr<ConjunctiveNormalForm> cnf)
+{
+    std::vector<std::shared_ptr<Literal>> pureLiterals;
+
+    int applied = 0;
+    for (auto clause : cnf->clauses())
+    {
+        auto literals = clause->literals();
+        pureLiterals.insert(pureLiterals.end(), literals.begin(), literals.end());
+    }
+
+    std::for_each (pureLiterals.begin(), pureLiterals.end(), [pureLiterals, cnf](std::shared_ptr<Literal> p) {
+            if (p->inverted())
+            {
+                auto it = std::find_if(pureLiterals.begin(), pureLiterals.end(), [](std::shared_ptr<Literal> pl) {
+                        return !pl->inverted();
+                });
+                if (it == pureLiterals.end())
+                    cnf->setVariable(p->netNumber(), 0);
+            }
+            else
+            {
+                auto it = std::find_if(pureLiterals.begin(), pureLiterals.end(), [](std::shared_ptr<Literal> pl) {
+                        return pl->inverted();
+                });
+                if (it == pureLiterals.end())
+                    cnf->setVariable(p->netNumber(), 1);
+            }
+    });
+
+    return applied;
 }
 
 bool Solver::unitClause(std::shared_ptr<ConjunctiveNormalForm> cnf)
 {
-    bool changed = false;
-    std::vector<int> literals;
-    bool inverted = false;
-    for (auto clause : cnf->clauses())
+    bool applied = false;
+    for (unsigned int i = 0; i < cnf->clauses().size(); ++i)
     {
+        auto clause = cnf->clauses().at(i);
         if (clause->literals().size() == 1)
         {
-            literals.push_back(clause->literals().at(0)->net()->number());
-            inverted = clause->literals().at(0)->inverted();
-            changed = true;
+            auto literal = clause->literals().at(0);
+            cnf->setVariable(literal->netNumber(), literal->inverted() ? 0 : 1);
+            applied = true;
         }
     }
 
-    for (auto literal : literals)
-    {
-        for (auto clause : cnf->clauses())
-        {
-            for (auto lit : clause->literals())
-            {
-                if (lit->net()->number() == literal)
-                {
-                    if (lit->inverted())
-                        lit->remove();
-                    else
-                        clause->remove();
-
-                    if (inverted)
-                        lit->setValue(0);
-                    else
-                        lit->setValue(1);
-                }
-            }
-        }
-    }
-    return changed;
+    return applied;
 }

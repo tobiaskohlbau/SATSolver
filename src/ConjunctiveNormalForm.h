@@ -24,12 +24,17 @@ class ConjunctiveNormalForm
 
         std::string string(bool removed = false);
 
+        void remove(Clause *clause);
+        void removeLiteralsByNumber(unsigned int number);
+        void removeClauseByLiteral(Literal *literal);
+
         bool empty();
         bool emptyClause();
-        void setVariable(int number, int value);
+        void setVariable(unsigned int number, int value);
         int getRightMost();
     private:
         std::vector<std::shared_ptr<Clause>> m_clauses;
+        std::vector<std::shared_ptr<Clause>> m_removedClauses;
 };
 
 #endif /* CONJUNCTIVENORMALFORM_H_ */
