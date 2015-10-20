@@ -20,7 +20,7 @@ run: compile
 
 
 doc:
-	$(DOC) edat.doxyfile
+	$(DOC) sat.doxyfile
 
 clean:
 	rm -f $(OBJECTS)
